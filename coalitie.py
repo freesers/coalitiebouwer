@@ -3,10 +3,10 @@ import streamlit as st
 st.set_page_config(page_title="Coalitiecalculator", layout="wide")
 
 partijen = [
-    ("PVV", 26), ("GL/PvdA", 24), ("D66", 23), ("CDA", 20),
-    ("VVD", 17), ("JA21", 10), ("FvD", 5), ("SP", 4),
+    ("PVV", 25), ("GL/PvdA", 20), ("D66", 27), ("CDA", 19),
+    ("VVD", 17), ("JA21", 9), ("FvD", 6), ("SP", 3),
     ("BBB", 4), ("Denk", 3), ("PvdD", 3), ("SGP", 3),
-    ("CU", 3), ("50PLUS", 2), ("Volt", 2), ("NSC", 1),
+    ("CU", 2), ("50PLUS", 2), ("Volt", 1),
 ]
 
 # Initialize toggles
