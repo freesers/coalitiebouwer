@@ -1,54 +1,63 @@
 import streamlit as st
 
-st.set_page_config(page_title="Coalitiebouwer (Freesers)", layout="wide")
+st.set_page_config(page_title="Coalitiebouwer", layout="wide")
 st.title("Coalitiebouwer")
 
-# Zetels
 partijen = [
-    ("PVV", 26), ("GL/PvdA", 24), ("D66", 23), ("CDA", 20),
-    ("VVD", 17), ("JA21", 10), ("FvD", 5), ("SP", 4),
-    ("BBB", 4), ("Denk", 3), ("PvdD", 3), ("SGP", 3),
-    ("CU", 3), ("50PLUS", 2), ("Volt", 2), ("NSC", 1),
+    ("PVV", 26),
+    ("GL/PvdA", 24),
+    ("D66", 23),
+    ("CDA", 20),
+    ("VVD", 17),
+    ("JA21", 10),
+    ("FvD", 5),
+    ("SP", 4),
+    ("BBB", 4),
+    ("Denk", 3),
+    ("PvdD", 3),
+    ("SGP", 3),
+    ("CU", 3),
+    ("50PLUS", 2),
+    ("Volt", 2),
+    ("NSC", 1),
 ]
 
-# Bewaar (optioneel) set met geselecteerde namen
-if "geselecteerd" not in st.session_state:
-    st.session_state.geselecteerd = set()
+# ---- Lees coalitie uit de URL ----
+param = st.query_params.get("coalitie", "")
+geselecteerd = set(param.split(",")) if param else set()
 
-# ---- Placeholders voor UI bovenaan (vullen we na de checkboxes) ----
-metric_ph = st.empty()
-status_ph = st.empty()
-selected_ph = st.empty()
+# ---- Bovenste UI ----
+totaal = sum(z for n, z in partijen if n in geselecteerd)
+st.metric("Totaal", totaal)
+
+if totaal >= 76:
+    st.success("🎉 Meerderheid")
+elif totaal > 0:
+    st.info("Nog onder de 76")
+else:
+    st.write("Selecteer partijen om te beginnen")
+
+if geselecteerd:
+    st.write("Geselecteerd:", ", ".join(sorted(geselecteerd)))
+
 st.markdown("---")
 
-# ---- Partijenselectors ----
+# ---- Partijselectie ----
 cols = st.columns(3)
-nieuwe_selectie = set()
 
 for i, (naam, zetels) in enumerate(partijen):
     col = cols[i % 3]
-    # standaardwaarde: huidige selectie
-    default = naam in st.session_state.geselecteerd
-    checked = col.checkbox(f"{naam} ({zetels})", value=default, key=f"cb_{naam}")
+    checked = naam in geselecteerd
+
+    new_set = set(geselecteerd)
     if checked:
-        nieuwe_selectie.add(naam)
+        new_set.remove(naam)
+    else:
+        new_set.add(naam)
 
-# Update state in één keer, ná de checkboxes
-st.session_state.geselecteerd = nieuwe_selectie
+    # nieuwe URL-parameter
+    new_param = ",".join(sorted(new_set)) if new_set else ""
 
-# ---- Nu pas: totaal en bovenste UI invullen ----
-totaal = sum(z for n, z in partijen if n in st.session_state.geselecteerd)
-
-metric_ph.metric("Totaal", totaal)
-
-if totaal >= 76:
-    status_ph.success("🎉 76 of meer zetels — meerderheidscoalitie.")
-elif totaal > 0:
-    status_ph.info("Nog niet boven de 76.")
-else:
-    status_ph.write("Selecteer partijen om te beginnen.")
-
-if st.session_state.geselecteerd:
-    selected_ph.write("Geselecteerd: " + ", ".join(sorted(st.session_state.geselecteerd)))
-else:
-    selected_ph.empty()
+    label = f"{naam} ({zetels})"
+    # Knop die enkel de URL wijzigt → geen cookies nodig
+    col.button(label, on_click=lambda v=new_param: st.query_params.update(coalitie=v))
