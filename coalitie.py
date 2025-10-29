@@ -1,45 +1,49 @@
 import streamlit as st
 
-st.set_page_config(page_title="Coalitiecalculator", layout="wide")
+st.set_page_config(page_title="Coalitiecalculator", layout="centered")
 
-partijen = [
-    ("PVV", 25), ("GL/PvdA", 20), ("D66", 27), ("CDA", 19),
-    ("VVD", 17), ("JA21", 9), ("FvD", 6), ("SP", 3),
+# Data
+PARTIJEN = [
+    ("PVV", 26), ("GL/PvdA", 24), ("D66", 23), ("CDA", 20),
+    ("VVD", 17), ("JA21", 10), ("FvD", 5), ("SP", 4),
     ("BBB", 4), ("Denk", 3), ("PvdD", 3), ("SGP", 3),
-    ("CU", 2), ("50PLUS", 2), ("Volt", 1),
+    ("CU", 3), ("50PLUS", 2), ("Volt", 2), ("NSC", 1),
 ]
 
-# Initialize toggles
-for naam, _ in partijen:
-    if naam not in st.session_state:
-        st.session_state[naam] = False
+# Init state
+if "gekozen" not in st.session_state:
+    st.session_state.gekozen = set()
 
-st.title("Coalitiecalculator (mobiel vriendelijk)")
+st.title("Coalitiecalculator (mobiel)")
 
-st.write("Tik op partijen om ze toe te voegen of te verwijderen:")
+st.caption("Tik op de knoppen om partijen aan/uit te zetten.")
 
-# Maak knoppen in eenvoudige kolommen (werkt op mobiel)
-cols = st.columns(2)
-for i, (naam, zetels) in enumerate(partijen):
-    col = cols[i % 2]
-    if st.session_state[naam]:
-        if col.button(f"✅ {naam} ({zetels})"):
-            st.session_state[naam] = False
-    else:
-        if col.button(f"{naam} ({zetels})"):
-            st.session_state[naam] = True
+# UI: lijst met toggle-knoppen (één kolom, werkt stabiel op mobiel)
+for naam, zetels in PARTIJEN:
+    geselecteerd = naam in st.session_state.gekozen
+    label = f"{'✅' if geselecteerd else '➕'} {naam} ({zetels})"
+    if st.button(label, key=f"btn_{naam}", use_container_width=True):
+        if geselecteerd:
+            st.session_state.gekozen.remove(naam)
+        else:
+            st.session_state.gekozen.add(naam)
 
-# Bereken totaal
-gekozen = [p for p, _ in partijen if st.session_state[p]]
-totaal = sum(z for p, z in partijen if st.session_state[p])
+# Totaal
+totaal = sum(zet for naam, zet in PARTIJEN if naam in st.session_state.gekozen)
 
-st.write("### Gekozen partijen:")
-st.write(", ".join(gekozen) if gekozen else "—")
-
-st.write("### Totaal zetels:")
-st.write(f"**{totaal}**")
+st.divider()
+st.subheader("Resultaat")
+gekozen_lijst = [p for p, _ in PARTIJEN if p in st.session_state.gekozen]
+st.write("**Gekozen partijen:** " + (", ".join(gekozen_lijst) if gekozen_lijst else "—"))
+st.write(f"**Totaal zetels:** {totaal}")
 
 if totaal >= 76:
     st.success("Meerderheid ✅")
 else:
     st.info("Geen meerderheid ❌")
+
+# Reset-knop
+st.divider()
+if st.button("Reset selectie", type="secondary", use_container_width=True, key="reset"):
+    st.session_state.gekozen.clear()
+    st.rerun()
