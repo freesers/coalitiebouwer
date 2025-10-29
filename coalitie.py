@@ -1,9 +1,9 @@
 import streamlit as st
 
-st.set_page_config(page_title="Coalitie-tool", layout="wide")
-st.title("Coalitie­bouwer (Freesers)")
+st.set_page_config(page_title="Coalitiebouwer (Freesers)", layout="wide")
+st.title("Coalitiebouwer (Freesers)")
 
-# Hard-coded zetels en kleuren
+# --- Hard-coded zetels + kleuren ---
 partijen = [
     ("PVV", 26, "#73BFF1"),
     ("GL/PvdA", 24, "#C62828"),
@@ -23,52 +23,73 @@ partijen = [
     ("NSC", 1, "#424242"),
 ]
 
-# selectie-state
+# --- State ---
 if "geselecteerd" not in st.session_state:
     st.session_state.geselecteerd = set()
 
-def toggle(naam):
+def toggle(naam: str):
     if naam in st.session_state.geselecteerd:
         st.session_state.geselecteerd.remove(naam)
     else:
         st.session_state.geselecteerd.add(naam)
 
+# --- Afhandelen van klik via query param (stabiele API) ---
+if "toggle" in st.query_params:
+    toggle(st.query_params["toggle"])
+    # param wissen en herstarten voor schone URL
+    del st.query_params["toggle"]
+    st.rerun()
+
 st.header("Klik op een partij:")
 
-# 3 kolommen → 1 kolom automatisch op mobiel
+# --- Stijl voor de gekleurde balk-knoppen ---
+st.markdown("""
+<style>
+.party-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.party-selected {
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
+}
+</style>
+""", unsafe_allow_html=True)
+
+# --- 3 kolommen (mobiel valt vanzelf terug naar 1) ---
 cols = st.columns(3)
 
 for i, (naam, zetels, kleur) in enumerate(partijen):
     kolom = cols[i % 3]
-    geselecteerd = naam in st.session_state.geselecteerd
-    label = f"{'✅ ' if geselecteerd else ''}{naam} ({zetels})"
-    shade = "inset 0 0 6px rgba(0,0,0,0.6)" if geselecteerd else "none"
+    selected = naam in st.session_state.geselecteerd
+    extra_cls = " party-selected" if selected else ""
+    label = f"{'✅ ' if selected else ''}{naam} ({zetels})"
 
-    # Inject CSS per knop
-    st.markdown(
+    # Klik zet ?toggle=<naam> in de URL; Streamlit leest die bovenin uit
+    kolom.markdown(
         f"""
-        <style>
-        button[data-baseweb="button"][aria-label="{naam}"] {{
-            background: {kleur} !important;
-            color: white !important;
-            border-radius: 8px !important;
-            border: none !important;
-            box-shadow: {shade} !important;
-            width: 100% !important;
-            padding: 8px 12px !important;
-            font-size: 15px !important;
-            font-weight: 600 !important;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
+<button class="party-btn{extra_cls}" style="background:{kleur};"
+        onclick="
+          const p = new URLSearchParams(window.location.search);
+          p.set('toggle', '{naam}');
+          window.location.search = p.toString();
+        ">
+  {label}
+</button>
+""",
+        unsafe_allow_html=True,
     )
 
-    with kolom:
-        st.button(label, key=naam, on_click=toggle, args=(naam,))
-
-# zeteltelling
-totaal = sum(zetels for naam, zetels, _ in partijen if naam in st.session_state.geselecteerd)
+# --- Totaal ---
+totaal = sum(z for n, z, _ in partijen if n in st.session_state.geselecteerd)
 
 st.subheader("Totaal aantal zetels")
 st.metric("Totaal", totaal)
@@ -81,4 +102,4 @@ else:
     st.write("Selecteer partijen om te beginnen.")
 
 if st.session_state.geselecteerd:
-    st.write("Geselecteerde partijen:", ", ".join(sorted(st.session_state.geselecteerd)))
+    st.write("Geselecteerd:", ", ".join(sorted(st.session_state.geselecteerd)))
