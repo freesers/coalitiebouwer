@@ -33,55 +33,42 @@ def toggle(naam):
     else:
         st.session_state.geselecteerd.add(naam)
 
-# handle ?toggle=partij
-query = st.experimental_get_query_params()
-if "toggle" in query:
-    toggle(query["toggle"][0])
-    st.experimental_set_query_params()  # URL weer schoonmaken
-    st.experimental_rerun()
+st.header("Klik op een partij om deze toe te voegen of te verwijderen")
 
-st.header("Klik partijen om te selecteren / deselecteren")
-
-# CSS knop-styling
+# ---- CSS zodat st.button eruitziet als smalle kleurtegel ----
 st.markdown("""
 <style>
-.party-btn {
-    display: block;
-    width: 100%;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    margin-bottom: 8px;
-    text-align: left;
-    color: white;
-}
-.party-selected {
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
+div.stButton > button {
+    width: 100% !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    color: white !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# 3 kolommen op desktop → automatisch 1 kolom op mobiel
+# 3 kolommen → minder scrollen, maar mobiel schakelt automatisch naar 1 kolom
 cols = st.columns(3)
 
 for i, (naam, zetels, kleur) in enumerate(partijen):
     kolom = cols[i % 3]
-    selected = naam in st.session_state.geselecteerd
-    extra = " party-selected" if selected else ""
+    geselecteerd = naam in st.session_state.geselecteerd
 
-    kolom.markdown(
-        f"""
-        <button class="party-btn{extra}" 
-                style="background:{kleur};"
-                onclick="window.location.search='toggle={naam}'">
-            {naam} ({zetels})
-        </button>
-        """,
-        unsafe_allow_html=True
-    )
+    label = f"{'✅ ' if geselecteerd else ''}{naam} ({zetels})"
+    shade = "inset 0 0 8px rgba(0,0,0,0.6)" if geselecteerd else "none"
+
+    with kolom:
+        # achtergrondkleur en schaduw rond de knop
+        st.markdown(
+            f"<div style='background:{kleur}; border-radius:8px; box-shadow:{shade};'>",
+            unsafe_allow_html=True
+        )
+        # knop zelf → triggert toggle()
+        st.button(label, key=naam, on_click=toggle, args=(naam,))
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # ---- Zeteltelling ----
 totaal = sum(zetels for naam, zetels, _ in partijen if naam in st.session_state.geselecteerd)
