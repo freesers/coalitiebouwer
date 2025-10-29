@@ -3,7 +3,6 @@ import streamlit as st
 st.set_page_config(page_title="Coalitiebouwer (Freesers)", layout="wide")
 st.title("Coalitiebouwer (Freesers)")
 
-# --- Hard-coded zetels + kleuren ---
 partijen = [
     ("PVV", 26, "#73BFF1"),
     ("GL/PvdA", 24, "#C62828"),
@@ -23,74 +22,58 @@ partijen = [
     ("NSC", 1, "#424242"),
 ]
 
-# --- State ---
 if "geselecteerd" not in st.session_state:
     st.session_state.geselecteerd = set()
 
-def toggle(naam: str):
+def toggle(naam):
     if naam in st.session_state.geselecteerd:
         st.session_state.geselecteerd.remove(naam)
     else:
         st.session_state.geselecteerd.add(naam)
 
-# --- Afhandelen van klik via query param (stabiele API) ---
-if "toggle" in st.query_params:
-    toggle(st.query_params["toggle"])
-    # param wissen en herstarten voor schone URL
-    del st.query_params["toggle"]
-    st.rerun()
-
 st.header("Klik op een partij:")
 
-# --- Stijl voor de gekleurde balk-knoppen ---
+# Basisknop styling (transparant → container doet de kleur)
 st.markdown("""
 <style>
-.party-btn {
-  display: block;
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: none;
-  color: white;
-  font-weight: 600;
-  font-size: 15px;
-  text-align: left;
-  cursor: pointer;
-  margin-bottom: 8px;
-}
-.party-selected {
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
+div.stButton > button {
+    width: 100% !important;
+    border: none !important;
+    background: transparent !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    padding: 8px 12px !important;
+    text-align: left !important;
+    cursor: pointer !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3 kolommen (mobiel valt vanzelf terug naar 1) ---
 cols = st.columns(3)
 
 for i, (naam, zetels, kleur) in enumerate(partijen):
     kolom = cols[i % 3]
     selected = naam in st.session_state.geselecteerd
-    extra_cls = " party-selected" if selected else ""
     label = f"{'✅ ' if selected else ''}{naam} ({zetels})"
 
-    # Klik zet ?toggle=<naam> in de URL; Streamlit leest die bovenin uit
-    kolom.markdown(
-        f"""
-<button class="party-btn{extra_cls}" style="background:{kleur};"
-        onclick="
-          const p = new URLSearchParams(window.location.search);
-          p.set('toggle', '{naam}');
-          window.location.search = p.toString();
-        ">
-  {label}
-</button>
-""",
-        unsafe_allow_html=True,
-    )
+    shadow = "inset 0 0 8px rgba(0,0,0,.6)" if selected else "none"
 
-# --- Totaal ---
+    with kolom:
+        # unieke container-ID zodat styling per partij werkt
+        st.markdown(
+            f"<div id='tile-{naam}' style='background:{kleur}; border-radius:8px; box-shadow:{shadow}; margin-bottom:8px;'>",
+            unsafe_allow_html=True
+        )
+
+        if st.button(label, key=naam):
+            toggle(naam)
+            st.rerun()
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# Totaal
 totaal = sum(z for n, z, _ in partijen if n in st.session_state.geselecteerd)
-
 st.subheader("Totaal aantal zetels")
 st.metric("Totaal", totaal)
 
