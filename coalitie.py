@@ -35,6 +35,8 @@ def toggle(naam):
 
 # UI
 st.header("Klik partijen om de coalitie te vormen")
+st.set_page_config(page_title="Coalitie-tool", page_icon="🗳️")
+
 
 cols = st.columns(4)
 for i, (naam, zetels, kleur) in enumerate(partijen):
