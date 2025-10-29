@@ -35,41 +35,36 @@ def toggle(naam):
 
 st.header("Klik partijen om de coalitie te vormen")
 
-# ---- Grote knoppen (mobielvriendelijk) ----
-st.markdown("""
-<style>
-.big-button button {
-    padding: 16px 20px !important;
-    border-radius: 12px !important;
-    font-size: 18px !important;
-    font-weight: 600 !important;
-    width: 100% !important;
-    margin-bottom: 8px !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-cols = st.columns(2)  # 2 per rij → betere touchbaarheid
+# Grote knoppen - mobielvriendelijk
+cols = st.columns(2)
 
 for i, (naam, zetels, kleur) in enumerate(partijen):
     kolom = cols[i % 2]
     geselecteerd = naam in st.session_state.geselecteerd
 
-    container_style = f"""
-        background-color: {kleur};
-        color: white;
-        border-radius: 10px;
-        padding: 12px;
-        text-align: center;
-        margin-bottom: 6px;
-        {"box-shadow: inset 0 0 8px #00000088;" if geselecteerd else ""}
-    """
+    button_label = f"{'✅ ' if geselecteerd else ''}{naam} ({zetels})"
 
+    # Gebruik Streamlit knoppen + kleur via container erboven
     with kolom:
-        st.markdown(f"<div style='{container_style}' class='big-button'>{naam} ({zetels})</div>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div style="
+                background-color:{kleur};
+                color:white;
+                padding:14px;
+                border-radius:10px;
+                text-align:center;
+                font-size:18px;
+                font-weight:600;
+                box-shadow:{'inset 0 0 10px rgba(0,0,0,0.6)' if geselecteerd else 'none'};
+                margin-bottom:6px;
+            ">{button_label}</div>
+            """,
+            unsafe_allow_html=True,
+        )
         st.button("Selecteer / verwijder", key=naam, on_click=toggle, args=(naam,))
 
-# ---- Totaal berekening ----
+# Berekening
 totaal = sum(zetels for naam, zetels, _ in partijen if naam in st.session_state.geselecteerd)
 
 st.subheader("Totaal aantal zetels")
@@ -83,4 +78,4 @@ else:
     st.write("Selecteer partijen om te beginnen.")
 
 if st.session_state.geselecteerd:
-    st.write("Geselecteerde partijen:", ", ".join(st.session_state.geselecteerd))
+    st.write("Geselecteerde partijen:", ", ".join(sorted(st.session_state.geselecteerd)))
