@@ -35,38 +35,40 @@ def toggle(naam):
 
 st.header("Klik op een partij om deze toe te voegen of te verwijderen")
 
-# ---- CSS zodat st.button eruitziet als smalle kleurtegel ----
+# ---- FIX: knop onzichtbaar → maak knop transparant, container bepaalt kleur ----
 st.markdown("""
 <style>
 div.stButton > button {
+    background: transparent !important;
+    border: none !important;
     width: 100% !important;
-    border-radius: 8px !important;
+    height: 100% !important;
     padding: 8px 12px !important;
     font-size: 15px !important;
     font-weight: 600 !important;
-    border: none !important;
     color: white !important;
+    text-align: left !important;
+    cursor: pointer;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# 3 kolommen → minder scrollen, maar mobiel schakelt automatisch naar 1 kolom
+# 3 kolommen desktop → 1 kolom mobiel automatisch
 cols = st.columns(3)
 
 for i, (naam, zetels, kleur) in enumerate(partijen):
     kolom = cols[i % 3]
     geselecteerd = naam in st.session_state.geselecteerd
 
-    label = f"{'✅ ' if geselecteerd else ''}{naam} ({zetels})"
     shade = "inset 0 0 8px rgba(0,0,0,0.6)" if geselecteerd else "none"
+    label = f"{'✅ ' if geselecteerd else ''}{naam} ({zetels})"
 
     with kolom:
-        # achtergrondkleur en schaduw rond de knop
         st.markdown(
-            f"<div style='background:{kleur}; border-radius:8px; box-shadow:{shade};'>",
-            unsafe_allow_html=True
+            f"<div style='background:{kleur}; border-radius:8px; "
+            f"box-shadow:{shade}; margin-bottom:8px;'>",
+            unsafe_allow_html=True,
         )
-        # knop zelf → triggert toggle()
         st.button(label, key=naam, on_click=toggle, args=(naam,))
         st.markdown("</div>", unsafe_allow_html=True)
 
