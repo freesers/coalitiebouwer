@@ -3,6 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="Coalitiebouwer", layout="wide")
 st.title("Coalitiebouwer")
 
+# Zetels
 partijen = [
     ("PVV", 26),
     ("GL/PvdA", 24),
@@ -22,42 +23,47 @@ partijen = [
     ("NSC", 1),
 ]
 
-# ---- Lees coalitie uit de URL ----
+# ---- Lees selectie uit URL ----
 param = st.query_params.get("coalitie", "")
 geselecteerd = set(param.split(",")) if param else set()
 
-# ---- Bovenste UI ----
+# ---- Functie om selectie up-to-date in URL te zetten ----
+def toggle(naam):
+    new = set(geselecteerd)
+    if naam in new:
+        new.remove(naam)
+    else:
+        new.add(naam)
+    st.query_params.update(coalitie=",".join(sorted(new)) if new else "")
+    st.rerun()
+
+# ---- Bovenaan: totaal ----
 totaal = sum(z for n, z in partijen if n in geselecteerd)
 st.metric("Totaal", totaal)
 
 if totaal >= 76:
-    st.success("🎉 Meerderheid")
+    st.success("🎉 Meerderheid!")
 elif totaal > 0:
-    st.info("Nog onder de 76")
+    st.info("Nog onder de 76.")
 else:
-    st.write("Selecteer partijen om te beginnen")
+    st.write("Selecteer partijen om te beginnen.")
 
 if geselecteerd:
     st.write("Geselecteerd:", ", ".join(sorted(geselecteerd)))
 
 st.markdown("---")
 
-# ---- Partijselectie ----
+# ---- Partijselectie (nu met indicator / checkbox) ----
 cols = st.columns(3)
 
 for i, (naam, zetels) in enumerate(partijen):
     col = cols[i % 3]
     checked = naam in geselecteerd
-
-    new_set = set(geselecteerd)
-    if checked:
-        new_set.remove(naam)
-    else:
-        new_set.add(naam)
-
-    # nieuwe URL-parameter
-    new_param = ",".join(sorted(new_set)) if new_set else ""
-
-    label = f"{naam} ({zetels})"
-    # Knop die enkel de URL wijzigt → geen cookies nodig
-    col.button(label, on_click=lambda v=new_param: st.query_params.update(coalitie=v))
+    # checkbox toont selectie visueel
+    col.checkbox(
+        f"{naam} ({zetels})",
+        value=checked,
+        key=f"cb_{naam}",
+        on_change=toggle,
+        args=(naam,)
+    )
