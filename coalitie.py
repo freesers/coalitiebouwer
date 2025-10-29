@@ -26,6 +26,25 @@ partijen = [
 if "geselecteerd" not in st.session_state:
     st.session_state.geselecteerd = set()
 
+# ---- Zeteltelling bovenaan ----
+totaal = sum(z for n, z in partijen if n in st.session_state.geselecteerd)
+
+st.subheader("Totaal aantal zetels")
+st.metric("Totaal", totaal)
+
+if totaal >= 76:
+    st.success("🎉 76 of meer zetels — meerderheidscoalitie.")
+elif totaal > 0:
+    st.info("Nog niet boven de 76.")
+
+if st.session_state.geselecteerd:
+    st.write("Geselecteerd:", ", ".join(sorted(st.session_state.geselecteerd)))
+else:
+    st.write("Selecteer partijen om te beginnen.")
+
+st.markdown("---")
+
+# ---- Partijenselectors ----
 st.header("Klik op een partij:")
 
 cols = st.columns(3)
@@ -39,19 +58,3 @@ for i, (naam, zetels) in enumerate(partijen):
         st.session_state.geselecteerd.add(naam)
     else:
         st.session_state.geselecteerd.discard(naam)
-
-# Zeteltelling
-totaal = sum(z for n, z in partijen if n in st.session_state.geselecteerd)
-
-st.subheader("Totaal aantal zetels")
-st.metric("Totaal", totaal)
-
-if totaal >= 76:
-    st.success("🎉 76 of meer zetels — meerderheidscoalitie.")
-elif totaal > 0:
-    st.info("Nog niet boven de 76.")
-else:
-    st.write("Selecteer partijen om te beginnen.")
-
-if st.session_state.geselecteerd:
-    st.write("Geselecteerde partijen:", ", ".join(sorted(st.session_state.geselecteerd)))
