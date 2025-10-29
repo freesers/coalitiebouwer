@@ -1,7 +1,7 @@
 import streamlit as st
 
 st.set_page_config(page_title="Coalitie-tool", layout="wide")
-st.title("Coalitiebouwer (Freesers)")
+st.title("Coalitie­bouwer (Freesers)")
 
 # Hard-coded zetels en kleuren
 partijen = [
@@ -23,7 +23,7 @@ partijen = [
     ("NSC", 1, "#424242"),
 ]
 
-# selectie bewaren
+# selectie-state
 if "geselecteerd" not in st.session_state:
     st.session_state.geselecteerd = set()
 
@@ -35,39 +35,39 @@ def toggle(naam):
 
 st.header("Klik op een partij:")
 
-# 3 kolommen → automatisch 1 op mobiel
+# 3 kolommen → 1 kolom automatisch op mobiel
 cols = st.columns(3)
 
 for i, (naam, zetels, kleur) in enumerate(partijen):
     kolom = cols[i % 3]
     geselecteerd = naam in st.session_state.geselecteerd
-
     label = f"{'✅ ' if geselecteerd else ''}{naam} ({zetels})"
+    shade = "inset 0 0 6px rgba(0,0,0,0.6)" if geselecteerd else "none"
 
-    # CSS: kleur + geselecteerde schaduw, specifiek per knop key
+    # Inject CSS per knop
     st.markdown(
         f"""
         <style>
-        div[data-testid="stButton"] button[key="{naam}"] {{
-            background-color: {kleur} !important;
+        button[data-baseweb="button"][aria-label="{naam}"] {{
+            background: {kleur} !important;
             color: white !important;
             border-radius: 8px !important;
+            border: none !important;
+            box-shadow: {shade} !important;
             width: 100% !important;
-            padding: 8px 10px !important;
+            padding: 8px 12px !important;
             font-size: 15px !important;
             font-weight: 600 !important;
-            border: none !important;
-            box-shadow: {"inset 0 0 8px rgba(0,0,0,0.6)" if geselecteerd else "none"} !important;
         }}
         </style>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
     with kolom:
         st.button(label, key=naam, on_click=toggle, args=(naam,))
 
-# ---- Zeteltelling ----
+# zeteltelling
 totaal = sum(zetels for naam, zetels, _ in partijen if naam in st.session_state.geselecteerd)
 
 st.subheader("Totaal aantal zetels")
