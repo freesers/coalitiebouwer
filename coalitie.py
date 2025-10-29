@@ -1,7 +1,7 @@
 import streamlit as st
 
 st.set_page_config(page_title="Coalitiebouwer (Freesers)", layout="wide")
-st.title("Coalitiebouwer (Freesers)")
+st.title("Coalitiebouwer")
 
 # Zetels
 partijen = [
@@ -29,7 +29,6 @@ if "geselecteerd" not in st.session_state:
 # ---- Zeteltelling bovenaan ----
 totaal = sum(z for n, z in partijen if n in st.session_state.geselecteerd)
 
-st.subheader("Totaal aantal zetels")
 st.metric("Totaal", totaal)
 
 if totaal >= 76:
@@ -45,8 +44,6 @@ else:
 st.markdown("---")
 
 # ---- Partijenselectors ----
-st.header("Klik op een partij:")
-
 cols = st.columns(3)
 
 for i, (naam, zetels) in enumerate(partijen):
