@@ -33,38 +33,42 @@ def toggle(naam):
     else:
         st.session_state.geselecteerd.add(naam)
 
-st.header("Klik partijen om de coalitie te vormen")
+st.header("Klik om partijen toe te voegen of te verwijderen")
 
-# Grote knoppen - mobielvriendelijk
-cols = st.columns(2)
+# ---- CSS voor knop-styling ----
+st.markdown("""
+<style>
+button[kind="secondary"] {
+    width: 100% !important;
+    border-radius: 10px !important;
+    padding: 14px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    border: none !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ---- 3 kolommen voor compact mobiel beeld ----
+cols = st.columns(3)
 
 for i, (naam, zetels, kleur) in enumerate(partijen):
-    kolom = cols[i % 2]
+    kolom = cols[i % 3]
     geselecteerd = naam in st.session_state.geselecteerd
 
-    button_label = f"{'✅ ' if geselecteerd else ''}{naam} ({zetels})"
+    label = f"{'✅ ' if geselecteerd else ''}{naam} ({zetels})"
+    bg = ("inset 0 0 10px rgba(0,0,0,0.6)" if geselecteerd else "none")
 
-    # Gebruik Streamlit knoppen + kleur via container erboven
     with kolom:
         st.markdown(
-            f"""
-            <div style="
-                background-color:{kleur};
-                color:white;
-                padding:14px;
-                border-radius:10px;
-                text-align:center;
-                font-size:18px;
-                font-weight:600;
-                box-shadow:{'inset 0 0 10px rgba(0,0,0,0.6)' if geselecteerd else 'none'};
-                margin-bottom:6px;
-            ">{button_label}</div>
-            """,
-            unsafe_allow_html=True,
+            f"<div style='background-color:{kleur}; padding:6px; border-radius:10px; "
+            f"box-shadow:{bg}; text-align:center;'>",
+            unsafe_allow_html=True
         )
-        st.button("Selecteer / verwijder", key=naam, on_click=toggle, args=(naam,))
+        st.button(label, key=naam, on_click=toggle, args=(naam,))
+        st.markdown("</div>", unsafe_allow_html=True)
 
-# Berekening
+# ---- Zeteltelling ----
 totaal = sum(zetels for naam, zetels, _ in partijen if naam in st.session_state.geselecteerd)
 
 st.subheader("Totaal aantal zetels")
