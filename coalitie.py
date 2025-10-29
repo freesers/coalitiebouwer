@@ -23,7 +23,7 @@ partijen = [
     ("NSC", 1, "#424242"),
 ]
 
-# Bewaar selectie
+# selectie bewaren
 if "geselecteerd" not in st.session_state:
     st.session_state.geselecteerd = set()
 
@@ -33,40 +33,55 @@ def toggle(naam):
     else:
         st.session_state.geselecteerd.add(naam)
 
-st.header("Klik om partijen toe te voegen of te verwijderen")
+# handle ?toggle=partij
+query = st.experimental_get_query_params()
+if "toggle" in query:
+    toggle(query["toggle"][0])
+    st.experimental_set_query_params()  # URL weer schoonmaken
+    st.experimental_rerun()
 
-# ---- CSS voor knop-styling ----
+st.header("Klik partijen om te selecteren / deselecteren")
+
+# CSS knop-styling
 st.markdown("""
 <style>
-button[kind="secondary"] {
-    width: 100% !important;
-    border-radius: 10px !important;
-    padding: 14px !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    border: none !important;
+.party-btn {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 8px;
+    text-align: left;
+    color: white;
+}
+.party-selected {
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ---- 3 kolommen voor compact mobiel beeld ----
+# 3 kolommen op desktop → automatisch 1 kolom op mobiel
 cols = st.columns(3)
 
 for i, (naam, zetels, kleur) in enumerate(partijen):
     kolom = cols[i % 3]
-    geselecteerd = naam in st.session_state.geselecteerd
+    selected = naam in st.session_state.geselecteerd
+    extra = " party-selected" if selected else ""
 
-    label = f"{'✅ ' if geselecteerd else ''}{naam} ({zetels})"
-    bg = ("inset 0 0 10px rgba(0,0,0,0.6)" if geselecteerd else "none")
-
-    with kolom:
-        st.markdown(
-            f"<div style='background-color:{kleur}; padding:6px; border-radius:10px; "
-            f"box-shadow:{bg}; text-align:center;'>",
-            unsafe_allow_html=True
-        )
-        st.button(label, key=naam, on_click=toggle, args=(naam,))
-        st.markdown("</div>", unsafe_allow_html=True)
+    kolom.markdown(
+        f"""
+        <button class="party-btn{extra}" 
+                style="background:{kleur};"
+                onclick="window.location.search='toggle={naam}'">
+            {naam} ({zetels})
+        </button>
+        """,
+        unsafe_allow_html=True
+    )
 
 # ---- Zeteltelling ----
 totaal = sum(zetels for naam, zetels, _ in partijen if naam in st.session_state.geselecteerd)
