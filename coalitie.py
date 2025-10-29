@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="Coalitiecalculator", layout="centered")
+st.set_page_config(page_title="Coalitiebouwer", layout="centered")
 
 PARTIJEN = [
     ("PVV", 26), ("GL/PvdA", 24), ("D66", 23), ("CDA", 20),
@@ -18,7 +18,6 @@ st.title("Coalitiecalculator")
 totaal = sum(z for n, z in PARTIJEN if n in st.session_state.gekozen)
 gekozen_lijst = [p for p, _ in PARTIJEN if p in st.session_state.gekozen]
 
-st.subheader("Resultaat")
 st.write("**Gekozen partijen:** " + (", ".join(gekozen_lijst) if gekozen_lijst else "—"))
 st.write(f"**Totaal zetels:** {totaal}")
 
@@ -30,7 +29,6 @@ else:
 st.divider()
 
 # --- KNOPPEN ---
-st.caption("Tik om partijen aan of uit te zetten.")
 for naam, zetels in PARTIJEN:
     is_geselecteerd = naam in st.session_state.gekozen
     label = f"{'✅' if is_geselecteerd else '➕'} {naam} ({zetels})"
