@@ -3,6 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="Coalitiebouwer (Freesers)", layout="wide")
 st.title("Coalitiebouwer (Freesers)")
 
+# Zetels + partijkleuren
 partijen = [
     ("PVV", 26, "#73BFF1"),
     ("GL/PvdA", 24, "#C62828"),
@@ -25,62 +26,40 @@ partijen = [
 if "geselecteerd" not in st.session_state:
     st.session_state.geselecteerd = set()
 
-def toggle(naam):
-    if naam in st.session_state.geselecteerd:
-        st.session_state.geselecteerd.remove(naam)
-    else:
-        st.session_state.geselecteerd.add(naam)
-
 st.header("Klik op een partij:")
 
-# Basisknop styling (transparant → container doet de kleur)
-st.markdown("""
-<style>
-div.stButton > button {
-    width: 100% !important;
-    border: none !important;
-    background: transparent !important;
-    color: white !important;
-    font-weight: 600 !important;
-    font-size: 15px !important;
-    padding: 8px 12px !important;
-    text-align: left !important;
-    cursor: pointer !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
+# 3 kolommen desktop → 1 mobiel (Streamlit doet dat automatisch)
 cols = st.columns(3)
 
 for i, (naam, zetels, kleur) in enumerate(partijen):
-    kolom = cols[i % 3]
+    col = cols[i % 3]
+
     selected = naam in st.session_state.geselecteerd
-    label = f"{'✅ ' if selected else ''}{naam} ({zetels})"
+    label = f"{naam} ({zetels})"
 
-    shadow = "inset 0 0 8px rgba(0,0,0,.6)" if selected else "none"
+    # kleurblok + checkbox in één horizontale regel
+    with col:
+        col1, col2 = st.columns([0.25, 0.75])
+        with col1:
+            st.markdown(f"<div style='background:{kleur}; width:100%; height:22px; border-radius:4px;'></div>", unsafe_allow_html=True)
+        with col2:
+            klik = st.checkbox(label, value=selected, key=naam)
 
-    with kolom:
-        # unieke container-ID zodat styling per partij werkt
-        st.markdown(
-            f"<div id='tile-{naam}' style='background:{kleur}; border-radius:8px; box-shadow:{shadow}; margin-bottom:8px;'>",
-            unsafe_allow_html=True
-        )
+        if klik and not selected:
+            st.session_state.geselecteerd.add(naam)
+        if not klik and selected:
+            st.session_state.geselecteerd.remove(naam)
 
-        if st.button(label, key=naam):
-            toggle(naam)
-            st.rerun()
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# Totaal
+# Zeteltelling
 totaal = sum(z for n, z, _ in partijen if n in st.session_state.geselecteerd)
+
 st.subheader("Totaal aantal zetels")
 st.metric("Totaal", totaal)
 
 if totaal >= 76:
-    st.success("🎉 76 of meer zetels — meerderheidscoalitie.")
+    st.success("🎉 76 of meer zetels — meerderheid!")
 elif totaal > 0:
-    st.info("Nog geen meerderheid.")
+    st.info("Nog onder de 76.")
 else:
     st.write("Selecteer partijen om te beginnen.")
 
