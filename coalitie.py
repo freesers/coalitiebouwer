@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="Coalitiecalculator", layout="centered")
+st.set_page_config(page_title="Coalitiecalculator", layout="wide")
 
 partijen = [
     ("PVV", 26), ("GL/PvdA", 24), ("D66", 23), ("CDA", 20),
@@ -9,21 +9,36 @@ partijen = [
     ("CU", 3), ("50PLUS", 2), ("Volt", 2), ("NSC", 1),
 ]
 
-st.title("Coalitiecalculator")
+# Initialize toggles
+for naam, _ in partijen:
+    if naam not in st.session_state:
+        st.session_state[naam] = False
 
-# Selectie
-gekozen = st.multiselect(
-    "Kies partijen:",
-    options=[p[0] for p in partijen]
-)
+st.title("Coalitiecalculator (mobiel vriendelijk)")
 
-# Totaal berekenen
-totaal = sum(z for (p, z) in partijen if p in gekozen)
+st.write("Tik op partijen om ze toe te voegen of te verwijderen:")
 
-st.write("### Totaal aantal zetels:")
-st.write(f"**{totaal} zetels**")
+# Maak knoppen in eenvoudige kolommen (werkt op mobiel)
+cols = st.columns(2)
+for i, (naam, zetels) in enumerate(partijen):
+    col = cols[i % 2]
+    if st.session_state[naam]:
+        if col.button(f"✅ {naam} ({zetels})"):
+            st.session_state[naam] = False
+    else:
+        if col.button(f"{naam} ({zetels})"):
+            st.session_state[naam] = True
 
-# Eventueel extra: drempel voor meerderheid
+# Bereken totaal
+gekozen = [p for p, _ in partijen if st.session_state[p]]
+totaal = sum(z for p, z in partijen if st.session_state[p])
+
+st.write("### Gekozen partijen:")
+st.write(", ".join(gekozen) if gekozen else "—")
+
+st.write("### Totaal zetels:")
+st.write(f"**{totaal}**")
+
 if totaal >= 76:
     st.success("Meerderheid ✅")
 else:
