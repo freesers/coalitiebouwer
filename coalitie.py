@@ -1,9 +1,9 @@
 import streamlit as st
 
-st.set_page_config(page_title="Coalitiebouwer (Freesers)", layout="wide")
-st.title("Coalitiebouwer (Freesers)")
+st.set_page_config(page_title="Coalitie-tool", layout="wide")
+st.title("Coalitie­bouwer (Freesers)")
 
-# Hard-coded zetels + kleuren
+# Hard-coded zetels en kleuren
 partijen = [
     ("PVV", 26, "#73BFF1"),
     ("GL/PvdA", 24, "#C62828"),
@@ -23,7 +23,7 @@ partijen = [
     ("NSC", 1, "#424242"),
 ]
 
-# Bewaar selectie
+# selectie-state
 if "geselecteerd" not in st.session_state:
     st.session_state.geselecteerd = set()
 
@@ -35,48 +35,40 @@ def toggle(naam):
 
 st.header("Klik op een partij:")
 
-# ✅ CSS die werkt op ALLE Streamlit-versies
-st.markdown("""
-<style>
-button.st-form-submit-button {
-    width: 100% !important;
-    border-radius: 8px !important;
-    border: none !important;
-    padding: 8px 12px !important;
-    font-size: 15px !important;
-    font-weight: 600 !important;
-    cursor: pointer;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# 3 kolommen → op mobiel automatisch 1 kolom
+# 3 kolommen → 1 kolom automatisch op mobiel
 cols = st.columns(3)
 
 for i, (naam, zetels, kleur) in enumerate(partijen):
     kolom = cols[i % 3]
-    selected = naam in st.session_state.geselecteerd
+    geselecteerd = naam in st.session_state.geselecteerd
+    label = f"{'✅ ' if geselecteerd else ''}{naam} ({zetels})"
+    shade = "inset 0 0 6px rgba(0,0,0,0.6)" if geselecteerd else "none"
 
-    bg = kleur
-    shade = "inset 0 0 8px rgba(0,0,0,0.6)" if selected else "none"
-    label = f"{'✅ ' if selected else ''}{naam} ({zetels})"
+    # Inject CSS per knop
+    st.markdown(
+        f"""
+        <style>
+        button[data-baseweb="button"][aria-label="{naam}"] {{
+            background: {kleur} !important;
+            color: white !important;
+            border-radius: 8px !important;
+            border: none !important;
+            box-shadow: {shade} !important;
+            width: 100% !important;
+            padding: 8px 12px !important;
+            font-size: 15px !important;
+            font-weight: 600 !important;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
     with kolom:
-        with st.form(key=naam):
-            st.markdown(
-                f"<div style='background:{bg}; border-radius:8px; "
-                f"box-shadow:{shade}; margin-bottom:8px;'>",
-                unsafe_allow_html=True
-            )
-            clicked = st.form_submit_button(label)
-            st.markdown("</div>", unsafe_allow_html=True)
+        st.button(label, key=naam, on_click=toggle, args=(naam,))
 
-            if clicked:
-                toggle(naam)
-                st.experimental_rerun()
-
-# Totaal
-totaal = sum(z for n, z, c in partijen if n in st.session_state.geselecteerd)
+# zeteltelling
+totaal = sum(zetels for naam, zetels, _ in partijen if naam in st.session_state.geselecteerd)
 
 st.subheader("Totaal aantal zetels")
 st.metric("Totaal", totaal)
@@ -89,4 +81,4 @@ else:
     st.write("Selecteer partijen om te beginnen.")
 
 if st.session_state.geselecteerd:
-    st.write("Geselecteerd:", ", ".join(sorted(st.session_state.geselecteerd)))
+    st.write("Geselecteerde partijen:", ", ".join(sorted(st.session_state.geselecteerd)))
